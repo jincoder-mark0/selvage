@@ -15,7 +15,7 @@
 <!-- <p align="center"> <img src="[Demo GIF URL]" width="100%" alt="Selvage Demo"/> </p> -->
 
 <p align="center">
-  <img src="assets/demo.gif" width="100%" alt="Selvage Demo"/>
+  <video src="https://github.com/user-attachments/assets/338766d9-535e-47cb-ad10-1f8ce069401d" width="100%" controls></video>
 </p>
 
 **Selvage: Code reviews with an edge!**
@@ -40,6 +40,7 @@ With smart context analysis (AST-based) that's accurate and cost-effective, plus
   - [Troubleshooting](#troubleshooting)
 - [🤝 Contributing](#-contributing)
 - [📜 License](#-license)
+- [📋 Change Log](#-change-log)
 - [📞 Contact and Community](#-contact-and-community)
 
 </details>
@@ -378,6 +379,14 @@ Selvage is an open-source project and we always welcome your contributions! Bug 
 ## 📜 License
 
 Selvage is distributed under the [Apache License 2.0](LICENSE). This license permits commercial use, modification, and distribution, with comprehensive patent protection and trademark restrictions included.
+
+## 📋 Change Log
+
+Check out all version changes and new features of Selvage.
+
+**[📋 View Complete Change Log →](CHANGELOG_EN.md)**
+
+You can find detailed changes for each version, including new features, bug fixes, and performance improvements.
 
 ## 📞 Contact and Community
 

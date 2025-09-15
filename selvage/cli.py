@@ -15,6 +15,7 @@ from selvage.src.config import (
     get_default_language,
     get_default_model,
     get_default_review_log_dir,
+    has_api_key,
     has_openrouter_api_key,
     set_default_debug_mode,
     set_default_language,
@@ -22,7 +23,6 @@ from selvage.src.config import (
     set_default_review_log_dir,
 )
 from selvage.src.diff_parser import parse_git_diff
-from selvage.src.exceptions.api_key_not_found_error import APIKeyNotFoundError
 from selvage.src.exceptions.json_parsing_error import JSONParsingError
 from selvage.src.exceptions.openrouter_api_error import (
     OpenRouterAPIError,
@@ -53,14 +53,14 @@ from selvage.src.utils.token.models import EstimatedCost, ReviewRequest, ReviewR
 @click.option(
     "--version",
     is_flag=True,
-    help="버전 정보를 출력합니다.",
+    help="Display version information.",
 )
 @click.pass_context
 def cli(
     ctx: click.Context,
     version: bool,
 ) -> None:
-    """LLM 기반 코드 리뷰 도구"""
+    """LLM-based code review tool"""
     # Context 객체 초기화
     if ctx.obj is None:
         ctx.obj = {}
@@ -99,7 +99,7 @@ def get_diff_content(
         git_diff = GitDiffUtility(repo_path=repo_path, mode=mode, target=target)
         return git_diff.get_diff()
     except ValueError as e:
-        console.error(f"Git diff 오류: {str(e)}", exception=e)
+        console.error(f"Git diff error: {str(e)}", exception=e)
         return ""
 
 
@@ -108,20 +108,19 @@ def config_model(model_name: str | None = None) -> None:
     # 새 모델 설정이 주어진 경우
     if model_name:
         if set_default_model(model_name):
-            console.success(f"기본 모델이 {model_name}로 설정되었습니다.")
+            console.success(f"Default model has been set to {model_name}.")
         else:
-            console.error("기본 모델 설정에 실패했습니다.")
+            console.error("Failed to set default model.")
             return
     else:
         # 모델이 지정되지 않은 경우 현재 설정을 표시
         current_model = get_default_model()
         if current_model:
-            console.info(f"현재 기본 모델: {current_model}")
+            console.info(f"Current default model: {current_model}")
         else:
-            console.info("기본 모델이 설정되지 않았습니다.")
+            console.info("Default model is not set.")
         console.info(
-            "기본 모델을 설정하려면 'selvage config model <model_name>' "
-            "명령어를 사용하세요."
+            "To set default model, use 'selvage config model <model_name>' command."
         )
 
 
@@ -131,19 +130,18 @@ def config_debug_mode(value: str | None = None) -> None:
         debug_mode = value.lower() == "on"
         if set_default_debug_mode(debug_mode):
             console.success(
-                f"디버그 모드가 {'활성화' if debug_mode else '비활성화'}되었습니다."
+                f"Debug mode has been {'enabled' if debug_mode else 'disabled'}."
             )
         else:
-            console.error("디버그 모드 설정에 실패했습니다.")
+            console.error("Failed to set debug mode.")
             return
     else:
         # 값이 지정되지 않은 경우 현재 설정을 표시
         current_value = console.is_debug_mode()
-        status = "활성화" if current_value else "비활성화"
-        console.info(f"현재 디버그 모드: {status}")
+        status = "enabled" if current_value else "disabled"
+        console.info(f"Current debug mode: {status}")
         console.info(
-            "디버그 모드를 변경하려면 'selvage config debug-mode on' 또는 "
-            "'selvage config debug-mode off' 명령어를 사용하세요."
+            "To change debug mode, use 'selvage config debug-mode on' or 'selvage config debug-mode off' command."
         )
 
 
@@ -151,17 +149,16 @@ def config_language(language: str | None = None) -> None:
     """언어 설정을 처리합니다."""
     if language is not None:
         if set_default_language(language):
-            console.success(f"기본 언어가 {language}로 설정되었습니다.")
+            console.success(f"Default language has been set to {language}.")
         else:
-            console.error("기본 언어 설정에 실패했습니다.")
+            console.error("Failed to set default language.")
             return
     else:
         # 언어가 지정되지 않은 경우 현재 설정을 표시
         current_language = get_default_language()
-        console.info(f"현재 기본 언어: {current_language}")
+        console.info(f"Current default language: {current_language}")
         console.info(
-            "기본 언어를 설정하려면 'selvage config language <language>' "
-            "명령어를 사용하세요."
+            "To set default language, use 'selvage config language <language>' command."
         )
 
 
@@ -173,26 +170,26 @@ def config_review_log_dir(log_dir: str | None = None) -> None:
         # 값이 지정되지 않은 경우 현재 설정을 표시
         current_value = get_default_review_log_dir()
         if current_value:
-            console.info(f"현재 리뷰 로그 디렉토리: {current_value}")
+            console.info(f"Current review log directory: {current_value}")
         else:
-            console.info("리뷰 로그 디렉토리가 설정되지 않았습니다.")
+            console.info("Review log directory is not set.")
 
 
 def config_list() -> None:
     """모든 설정을 표시합니다."""
-    console.print("==== selvage 설정 ====", style="bold cyan")
+    console.print("==== selvage Configuration ====", style="bold cyan")
     console.print("")
 
     # OpenRouter First 방식 안내
 
     if has_openrouter_api_key():
         console.print(
-            "🚀 [bold green]OpenRouter First 모드[/bold green]: 모든 모델이 OpenRouter를 통해 작동합니다",
+            "🚀 [bold green]OpenRouter First Mode[/bold green]: All models operate through OpenRouter",
             style="green",
         )
     else:
         console.print(
-            "💡 [bold yellow]OpenRouter First[/bold yellow]: OPENROUTER_API_KEY를 설정하면 모든 모델을 OpenRouter를 통해 사용할 수 있습니다",
+            "💡 [bold yellow]OpenRouter First[/bold yellow]: Set OPENROUTER_API_KEY to use all models through OpenRouter",
             style="yellow",
         )
     console.print("")
@@ -201,51 +198,40 @@ def config_list() -> None:
     for provider in ModelProvider:
         provider_display = provider.get_display_name()
         env_var_name = provider.get_env_var_name()
-        env_value = os.getenv(env_var_name)
 
-        try:
-            # API 키 가져오기 시도 (에러 메시지 억제)
-            from unittest.mock import patch
-
-            with patch("selvage.src.utils.base_console.console"):
-                get_api_key(provider)
-
-            if env_value:
-                console.print(
-                    f"{provider_display} API 키: [bold green]환경변수[/bold green] {env_var_name}에서 설정됨 ✓",
-                    style="green",
-                )
-            else:
-                console.print(
-                    f"{provider_display} API 키: 설정 파일에서 설정됨", style="green"
-                )
-        except APIKeyNotFoundError:
-            console.print(f"{provider_display} API 키: 설정되지 않음", style="red")
+        if has_api_key(provider):
             console.print(
-                f"  설정 방법: [green]export {env_var_name}=your_api_key[/green]"
+                (
+                    f"{provider_display} API Key: "
+                    f"[bold green]Set from env var[/bold green] {env_var_name} ✓"
+                ),
+                style="green",
             )
+        else:
+            console.print(f"{provider_display} API Key: Not set", style="red")
+            console.print(f"  Setup: [green]export {env_var_name}=your_api_key[/green]")
 
     console.print("")
 
     # 기본 설정들 표시
-    console.print("[bold]기본 설정[/bold]", style="cyan")
+    console.print("[bold]Default Settings[/bold]", style="cyan")
     default_model = get_default_model()
     if default_model:
-        console.print(f"기본 모델: {default_model}", style="green")
+        console.print(f"Default model: {default_model}", style="green")
     else:
-        console.print("기본 모델: 설정되지 않음", style="red")
+        console.print("Default model: Not set", style="red")
 
     default_language = get_default_language()
     if default_language:
-        console.print(f"기본 언어: {default_language}", style="green")
+        console.print(f"Default language: {default_language}", style="green")
     else:
-        console.print("기본 언어: 설정되지 않음", style="red")
+        console.print("Default language: Not set", style="red")
 
     default_debug_mode = console.is_debug_mode()
-    console.print(f"디버그 모드: {default_debug_mode}", style="green")
+    console.print(f"Debug mode: {default_debug_mode}", style="green")
 
     review_log_dir = get_default_review_log_dir()
-    console.print(f"리뷰 로그 디렉토리: {review_log_dir}", style="green")
+    console.print(f"Review log directory: {review_log_dir}", style="green")
 
 
 def _handle_context_limit_error(
@@ -276,7 +262,7 @@ def _handle_api_error(error_response: ErrorResponse) -> None:
     else:
         # 기존 에러 처리 로직
         console.error(
-            f"API 오류 ({error_response.provider.get_display_name()}): "
+            f"API error ({error_response.provider.get_display_name()}): "
             f"{error_response.error_message}"
         )
 
@@ -286,36 +272,36 @@ def _handle_api_error(error_response: ErrorResponse) -> None:
 def _handle_openrouter_error(error: OpenRouterAPIError) -> None:
     """OpenRouter 관련 에러 처리"""
     if isinstance(error, OpenRouterAuthenticationError):
-        console.error("OpenRouter API 인증 오류")
-        console.info("해결 방법:")
-        console.print("  1. OPENROUTER_API_KEY 환경변수 확인")
-        console.print("  2. API 키 유효성 확인")
+        console.error("OpenRouter API authentication error")
+        console.info("Solutions:")
+        console.print("  1. Check OPENROUTER_API_KEY environment variable")
+        console.print("  2. Verify API key validity")
     elif isinstance(error, OpenRouterResponseError):
-        console.error(f"OpenRouter API 응답 구조 오류: {error}")
+        console.error(f"OpenRouter API response structure error: {error}")
         if error.missing_field:
-            console.error(f"누락된 필드: {error.missing_field}")
+            console.error(f"Missing field: {error.missing_field}")
         if console.is_debug_mode() and error.raw_response:
-            console.error(f"원본 응답: {error.raw_response}")
+            console.error(f"Raw response: {error.raw_response}")
     else:
-        console.error(f"OpenRouter API 오류: {error}")
+        console.error(f"OpenRouter API error: {error}")
 
 
 def _handle_json_parsing_error(error: JSONParsingError) -> None:
     """JSON 파싱 에러 처리"""
-    console.error("구조화된 응답 파싱에 실패했습니다")
-    console.error(f"오류: {error}")
+    console.error("Failed to parse structured response")
+    console.error(f"Error: {error}")
 
     if console.is_debug_mode():
-        console.error("디버그 정보:")
+        console.error("Debug information:")
         if error.parsing_error:
-            console.error(f"  파싱 오류: {error.parsing_error}")
+            console.error(f"  Parsing error: {error.parsing_error}")
         if error.raw_response:
-            console.error(f"  원본 응답 (일부): {error.raw_response}")
+            console.error(f"  Raw response (partial): {error.raw_response}")
 
 
 def _handle_unknown_error() -> None:
     """알 수 없는 에러 처리"""
-    console.error("알 수 없는 오류가 발생했습니다.")
+    console.error("An unknown error occurred.")
     raise Exception("Unknown error occurred")
 
 
@@ -340,7 +326,7 @@ def _perform_new_review(
             if error_response.is_context_limit_error():
                 # UI 연속성을 유지하면서 멀티턴 모드로 전환
                 progress.transition_to_multiturn(
-                    "Context 한계 도달! Long context mode로 처리 중..."
+                    "Context limit reached! Processing in long context mode..."
                 )
                 result = _handle_context_limit_error(
                     review_prompt, error_response, llm_gateway
@@ -378,8 +364,8 @@ def review_code(
 
     api_key = get_api_key(provider)
     if not api_key:
-        console.error(f"{provider.get_display_name()} API 키가 설정되지 않았습니다.")
-        console.info("환경변수로 API 키를 설정해주세요:")
+        console.error(f"{provider.get_display_name()} API key is not set.")
+        console.info("Please set API key as environment variable:")
         console.print(
             f"  [green]export {provider.get_env_var_name()}=YOUR_API_KEY[/green]"
         )
@@ -398,7 +384,7 @@ def review_code(
     # Git diff 내용 가져오기
     diff_content = get_diff_content(repo_path, staged, target_commit, target_branch)
     if not diff_content:
-        console.warning("변경 사항이 없거나 diff를 가져올 수 없습니다.")
+        console.warning("No changes found or unable to retrieve diff.")
         return
 
     # repo_path 결정 - 사용자 입력 또는 프로젝트 루트
@@ -454,7 +440,7 @@ def review_code(
                     estimated_cost=estimated_cost,
                 )
 
-                console.success("캐시된 리뷰 결과를 사용했습니다! (API 비용 절약)")
+                console.success("Used cached review result! (API cost saved)")
             else:
                 # 캐시 미스: 새로운 리뷰 수행 후 캐시에 저장
                 log_id = ReviewLogManager.generate_log_id(model)
@@ -485,13 +471,13 @@ def review_code(
             estimated_cost=estimated_cost,
         )
 
-        console.success("코드 리뷰가 완료되었습니다!")
+        console.success("Code review completed!")
     except UnsupportedModelError:
         # UnsupportedModelError는 이미 명확한 메시지가 표시되었으므로
         # 추가 메시지 없이 종료
         return
     except Exception as e:
-        console.error(f"코드 리뷰 중 오류가 발생했습니다: {str(e)}", exception=e)
+        console.error(f"Error occurred during code review: {str(e)}", exception=e)
         error_log_id = ReviewLogManager.generate_log_id(model)
         log_path = ReviewLogManager.save(
             review_prompt,
@@ -510,7 +496,7 @@ def review_code(
 
     # UI 자동 실행
     if open_ui:
-        console.info("리뷰 결과 UI를 시작합니다...")
+        console.info("Starting review result UI...")
         handle_view_command(port)
 
 
@@ -518,32 +504,35 @@ def handle_view_command(port: int) -> None:
     """UI 보기 명령을 처리합니다."""
     try:
         console.info(
-            f"Streamlit UI를 시작합니다. 브라우저에서 "
-            f"[blue]http://localhost:{port}[/blue]으로 접속하세요..."
+            f"Starting Streamlit UI. Please access "
+            f"[blue]http://localhost:{port}[/blue] in your browser..."
         )
         # 포트 설정
         os.environ["STREAMLIT_SERVER_PORT"] = str(port)
         # UI 실행
         run_app()
     except ImportError as e:
-        console.error("Streamlit 라이브러리가 설치되어 있지 않습니다.", exception=e)
-        console.info("다음 명령어로 설치하세요: [green]pip install streamlit[/green]")
+        console.error("Streamlit library is not installed.", exception=e)
+        console.info("Install with: [green]pip install streamlit[/green]")
         return
 
 
 @cli.command()
 @click.option(
-    "--repo-path", default=".", help="Git 저장소 경로 (기본값: 현재 디렉토리)", type=str
+    "--repo-path",
+    default=".",
+    help="Git repository path (default: current directory)",
+    type=str,
 )
-@click.option("--staged", is_flag=True, help="Staged 변경사항만 리뷰", type=bool)
+@click.option("--staged", is_flag=True, help="Review staged changes only", type=bool)
 @click.option(
     "--target-commit",
-    help="특정 커밋부터 HEAD까지의 변경사항을 리뷰 (예: abc1234)",
+    help="Review changes from specific commit to HEAD (e.g., abc1234)",
     type=str,
 )
 @click.option(
     "--target-branch",
-    help="현재 브랜치와 지정된 브랜치 간의 변경사항을 리뷰 (예: main)",
+    help="Review changes between current branch and specified branch (e.g., main)",
     type=str,
 )
 @click.option(
@@ -552,26 +541,31 @@ def handle_view_command(port: int) -> None:
     default=get_default_model(),
     help=ModelChoice.build_help_text(),
 )
-@click.option("--open-ui", is_flag=True, help="리뷰 완료 후 UI로 결과 보기", type=bool)
+@click.option(
+    "--open-ui",
+    is_flag=True,
+    help="View results with UI after review completion",
+    type=bool,
+)
 @click.option(
     "--no-print",
     "no_print_result",
     is_flag=True,
-    help="터미널에 리뷰 결과를 출력하지 않음",
+    help="Don't print review results to terminal",
     type=bool,
 )
 @click.option(
     "--skip-cache",
     is_flag=True,
-    help="캐시를 사용하지 않고 새로운 리뷰 수행",
+    help="Perform new review without using cache",
     type=bool,
 )
 @click.option(
-    "--clear-cache", is_flag=True, help="캐시를 삭제한 후 리뷰 수행", type=bool
+    "--clear-cache", is_flag=True, help="Clear cache and then perform review", type=bool
 )
 @click.option(
     "--log-dir",
-    help="로그 저장 디렉토리",
+    help="Log save directory",
     type=str,
 )
 def review(
@@ -586,25 +580,25 @@ def review(
     clear_cache: bool,
     log_dir: str | None,
 ) -> None:
-    """코드 리뷰 수행"""
+    """Perform code review"""
     # 상호 배타적 옵션 검증
     exclusive_options = sum([staged, bool(target_commit), bool(target_branch)])
     if exclusive_options > 1:
         click.echo(
-            "오류: --staged, --target-commit, --target-branch 옵션은 "
-            "동시에 사용할 수 없습니다.",
+            "Error: --staged, --target-commit, --target-branch options "
+            "cannot be used simultaneously.",
             err=True,
         )
         return
 
     if not model:
-        console.warning("리뷰 모델을 지정하지 않았습니다.")
+        console.warning("Review model not specified.")
         message = (
-            "리뷰 모델을 지정해주세요. 사용 가능한 모델은 'selvage models' 명령어로 확인할 수 있습니다.\n\n"
-            "사용 예시:\n"
-            "  selvage review --model <모델명>\n"
-            "또는 기본 모델 설정:\n"
-            "  selvage config model <모델명>"
+            "Please specify a review model. Available models can be checked with 'selvage models' command.\n\n"
+            "Usage example:\n"
+            "  selvage review --model <model-name>\n"
+            "Or set default model:\n"
+            "  selvage config model <model-name>"
         )
         console.print(message)
         return
@@ -628,14 +622,14 @@ def review(
 
 @cli.group()
 def config() -> None:
-    """설정 관리"""
+    """Configuration management"""
     pass
 
 
 @config.command()
 @click.argument("model_name", type=ModelChoice(), required=False)
 def model(model_name: str | None) -> None:
-    """모델 설정 (selvage models 명령어로 사용 가능한 모델 목록 확인 가능)"""
+    """Model configuration (check available models with 'selvage models' command)"""
     config_model(model_name)
 
 
@@ -644,42 +638,42 @@ def model(model_name: str | None) -> None:
     "value", type=click.Choice(["on", "off"]), required=False, default="off"
 )
 def debug_mode(value: str | None) -> None:
-    """디버그 모드 설정 (on / off)"""
+    """Debug mode setting (on / off)"""
     config_debug_mode(value)
 
 
 @config.command(name="review-log-dir")
 @click.argument("directory_path", required=False)
 def review_log_dir(directory_path: str | None) -> None:
-    """리뷰 로그 저장 디렉토리 설정"""
+    """Review log save directory setting"""
     config_review_log_dir(directory_path)
 
 
 @config.command(name="language")
 @click.argument("language_name", required=False)
 def language(language_name: str | None) -> None:
-    """기본 언어 설정"""
+    """Default language setting"""
     config_language(language_name)
 
 
 @config.command(name="list")
 def show_config() -> None:
-    """모든 설정 표시"""
+    """Display all settings"""
     config_list()
 
 
 @cli.command()
 @click.option(
-    "--port", default=8501, type=int, help="Streamlit 서버 포트 (기본값: 8501)"
+    "--port", default=8501, type=int, help="Streamlit server port (default: 8501)"
 )
 def view(port: int) -> None:
-    """리뷰 결과를 UI로 보기"""
+    """View review results with UI"""
     handle_view_command(port)
 
 
 @cli.command()
 def models() -> None:
-    """사용 가능한 AI 모델 목록 보기"""
+    """View available AI model list"""
     review_display.show_available_models()
 
 
@@ -691,10 +685,10 @@ def main() -> None:
     try:
         cli()
     except KeyboardInterrupt:
-        console.info("\n프로그램이 사용자에 의해 중단되었습니다.")
+        console.info("\nProgram was interrupted by user.")
         sys.exit(1)
     except Exception as e:
-        console.error(f"오류 발생: {str(e)}", exception=e)
+        console.error(f"Error occurred: {str(e)}", exception=e)
         sys.exit(1)
 
 
