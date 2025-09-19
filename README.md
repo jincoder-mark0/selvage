@@ -58,9 +58,34 @@ With smart context analysis (AST-based) that's accurate and cost-effective, plus
 
 ### 1. Installation
 
+#### Recommended Method (using uv)
+
 ```bash
+# Install uv (run once)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install Selvage
+uv tool install selvage
+```
+
+#### Alternative Method (using pipx)
+
+```bash
+# Install pipx (macOS)
+brew install pipx
+
+# Install Selvage
+pipx install selvage
+```
+
+#### Traditional Method (pip)
+
+```bash
+# ⚠️ May cause externally-managed-environment error on some systems
 pip install selvage
 ```
+
+**macOS/Linux users**: If you encounter errors with `pip install`, please use the uv or pipx methods above.
 
 ### 2. API Key Setup
 
@@ -182,17 +207,15 @@ Selvage analyzes file size and change scope to **automatically select the most e
 
 > 💡 **Automatic Optimization**: The optimal analysis method for each situation is automatically applied without any manual configuration.
 
-#### Supported Languages (AST-based)
+#### Smart Context Supported Languages
 
 - **Python**, **JavaScript**, **TypeScript**, **Java**, **Kotlin**
 
-#### Full Language Support
+#### Universal Context Extraction Support
 
-- **All Programming Languages**: Go, Ruby, PHP, C#, C/C++, Rust, Swift, Dart, etc.
-- **Markup & Configuration Files**: HTML, CSS, Markdown, JSON, YAML, XML, etc.
-- **Scripts & Others**: Shell, SQL, Dockerfile, other text-based files
+- **Major Programming Languages**: Go, Ruby, PHP, C#, C/C++, Rust, Swift, Dart, etc.
 
-> 🚀 **Universal context extraction method** provides **excellent code review quality** for all languages.  
+> 🚀 **Universal context extraction method** provides **excellent code review quality** for major programming languages.  
 > AST-based supported languages are continuously expanding.
 
 ---
@@ -282,6 +305,25 @@ selvage review --model gemini-2.5-flash
 
 ### Troubleshooting
 
+#### Installation Errors
+
+**`externally-managed-environment` Error (macOS/Linux)**
+
+```bash
+# Solution 1: Use uv (recommended)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install selvage
+
+# Solution 2: Use pipx
+brew install pipx  # macOS
+pipx install selvage
+
+# Solution 3: Use virtual environment
+python3 -m venv ~/.selvage-env
+source ~/.selvage-env/bin/activate
+pip install selvage
+```
+
 #### Common Errors
 
 **API Key Error**
@@ -323,6 +365,21 @@ selvage review
 
 ### Development Version Installation
 
+#### Using uv (recommended)
+
+```bash
+git clone https://github.com/selvage-lab/selvage.git
+cd selvage
+
+# Install all development dependencies automatically
+uv sync --dev --extra e2e
+
+# Run
+uv run selvage --help
+```
+
+#### Using pip
+
 ```bash
 git clone https://github.com/selvage-lab/selvage.git
 cd selvage
@@ -330,6 +387,21 @@ pip install -e .
 ```
 
 ### Development Environment Installation
+
+#### Using uv (recommended)
+
+```bash
+# Development dependencies only
+uv sync --dev
+
+# E2E test environment included
+uv sync --dev --extra e2e
+
+# Run tests
+uv run pytest tests/
+```
+
+#### Using pip
 
 ```bash
 # Install with development dependencies (pytest, build, etc.)
