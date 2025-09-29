@@ -28,16 +28,14 @@
 
 - [✨ 주요 기능](#-주요-기능)
 - [🚀 빠른 시작](#-빠른-시작)
+- [🎯 실전 활용 가이드](#-실전-활용-가이드)
+  - [MCP 모드 사용 방법](#mcp-모드-사용-방법)
+  - [⌨️ CLI 사용법](#️-cli-사용법)
 - [🌐 Smart Context 분석 및 지원 AI 모델](#-smart-context-분석-및-지원-ai-모델)
   - [Smart Context 분석](#-smart-context-분석)
   - [지원 AI 모델](#지원-ai-모델)
-- [⌨️ CLI 사용법](#️-cli-사용법)
-  - [Selvage 설정하기](#selvage-설정하기)
-  - [코드 리뷰하기](#코드-리뷰하기)
-  - [결과 확인하기](#결과-확인하기)
 - [📄 리뷰 결과 저장 형식](#-리뷰-결과-저장-형식)
-- [🛠️ 고급 사용법](#️-고급-사용법)
-  - [문제 해결](#문제-해결)
+- [🔧 문제 해결](#-문제-해결)
 - [🤝 기여하기](#-기여하기)
 - [📜 라이선스](#-라이선스)
 - [📋 업데이트 이력](#-업데이트-이력)
@@ -49,16 +47,18 @@
 
 - **🤖 다양한 AI 모델 지원**: OpenAI GPT-5, Anthropic Claude Sonnet-4, Google Gemini 등 최신 LLM 모델 활용
 - **🔍 Git 워크플로우와 통합**: staged, unstaged, 특정 커밋/브랜치 간 변경사항 분석 지원
-- **🐛 포괄적 코드 검토**: 버그 및 논리 오류 탐지, 코드 품질 및 가독성 향상 제안
 - **🎯 최적화된 컨텍스트 분석**: Tree-sitter 기반 AST 분석을 통해 변경 라인이 속하는 가장 작은 코드 블록과 dependency statement를 자동 추출하여 상황에 따라 최적화된 컨텍스트 제공
 - **🔄 자동 멀티턴 처리**: 컨텍스트 제한 초과 시 프롬프트를 자동 분할하여 안정적인 대용량 코드 리뷰 지원
+- **🤖 MCP 모드 지원**: Cursor, Claude Code 등에 MCP 모드로 등록하여 "현재 변경사항 리뷰해줘" 같은 자연어로 대화하며 코드 리뷰 요청
 - **📖 오픈소스**: Apache-2.0 라이선스로 자유롭게 사용 및 수정 가능
 
 ## 🚀 빠른 시작
 
-### 1. 설치
+### 공통 준비
 
-#### 권장 방법 (uv 사용)
+#### 1. 설치
+
+**권장 방법 (uv 사용)**
 
 ```bash
 # uv 설치 (한 번만 실행)
@@ -68,7 +68,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv tool install selvage
 ```
 
-#### 대안 방법 (pipx 사용)
+**대안 방법 (pipx 사용)**
 
 ```bash
 # pipx 설치 (macOS)
@@ -78,7 +78,7 @@ brew install pipx
 pipx install selvage
 ```
 
-#### 전통적 방법 (pip)
+**전통적 방법 (pip)**
 
 ```bash
 # ⚠️ 일부 환경에서 externally-managed-environment 에러 발생 가능
@@ -87,7 +87,7 @@ pip install selvage
 
 **macOS/Linux 사용자**: `pip install` 시 에러가 발생하면 위의 uv 또는 pipx 방법을 사용해주세요.
 
-### 2. API 키 설정
+#### 2. API 키 설정
 
 [OpenRouter](https://openrouter.ai)에서 API 키를 발급받아 설정하세요:
 
@@ -95,21 +95,122 @@ pip install selvage
 export OPENROUTER_API_KEY="your_openrouter_api_key_here"
 ```
 
-### 3. 코드 리뷰 시작
+### MCP 모드 사용 (권장)
+
+Cursor, Claude Code 등에 MCP 모드로 등록하여 자연어로 코드 리뷰를 요청할 수 있습니다.
+
+#### Cursor 연동
+
+Cursor의 MCP 설정 파일에 등록 (경로는 사용자 환경에 따라 다를 수 있음):
+
+**일반적인 경로:** `~/.cursor/mcp.json`
+
+```json
+// 방법 1: 환경변수 사용 (이미 설정한 경우)
+{
+  "mcpServers": {
+    "selvage": {
+      "command": "uvx",
+      "args": ["selvage", "mcp"]
+    }
+  }
+}
+
+// 방법 2: 직접 지정
+{
+  "mcpServers": {
+    "selvage": {
+      "command": "uvx",
+      "args": ["selvage", "mcp"],
+      "env": {
+        "OPENROUTER_API_KEY": "your_openrouter_api_key_here"
+      }
+    }
+  }
+}
+```
+
+#### Claude Code 연동
+
+```bash
+# 방법 1: 환경변수 사용 (이미 설정한 경우)
+claude mcp add selvage -- uvx selvage mcp
+
+# 방법 2: 직접 지정
+claude mcp add selvage -e OPENROUTER_API_KEY=your_openrouter_api_key_here -- uvx selvage mcp
+```
+
+#### 사용법
+
+IDE를 재시작 후 Coding Assistant에게 리뷰를 요청해보세요:
+
+```
+selvage mcp로 현재 변경사항 리뷰해줘
+selvage mcp로 현재 브랜치와 main 브랜치 변경 내용을 claude-sonnet-4-thinking으로 리뷰해줘
+```
+
+🎉 **완료!** Selvage가 코드를 분석해 리뷰하고, Coding Assistant로 전달해줍니다.
+
+### CLI 모드 사용
+
+터미널에서 직접 사용하려면:
 
 ```bash
 selvage review --model claude-sonnet-4-thinking
 ```
 
-🎉 **완료!** 리뷰 결과가 터미널에 바로 출력됩니다.
-
-**💡 더 많은 옵션:** [CLI 사용법](#️-cli-사용법) | [고급 사용법](#️-고급-사용법)
+**💡 더 많은 옵션:** [CLI 사용법](#️-cli-사용법) | [실전 활용 가이드](#-실전-활용-가이드)
 
 ---
 
-## ⌨️ CLI 사용법
+## 🎯 실전 활용 가이드
 
-### Selvage 설정하기
+### MCP 모드 사용 방법
+
+#### 기본 사용법
+
+```
+# 기본 리뷰 요청
+selvage mcp로 현재 변경사항 리뷰해줘
+
+# 스테이징된 변경사항 리뷰
+selvage mcp로 스테이징된 작업 내용을 gpt-5-high로 리뷰해줘
+
+# 특정 브랜치와 비교 리뷰
+selvage mcp로 메인 브랜치와 현재 브랜치를 비교해서 리뷰해줘
+
+# 모델 자동 선택 리뷰
+selvage mcp로 메인 브랜치와 현재 브랜치를 리뷰하되 사용 모델을 확인해서 선정해서 리뷰해줘
+```
+
+#### 고급 워크플로우
+
+**멀티 모델 비교 리뷰**
+```
+selvage mcp로 스테이징된 작업 내용을 gpt-5-high, claude-sonnet-4-thinking으로 각각 리뷰하고 결과를 비교해줘
+```
+
+**단계별 코드 개선 워크플로우**
+```
+1. selvage mcp로 현재 변경사항을 claude-sonnet-4-thinking으로 리뷰해줘
+2. 리뷰 피드백이 현재 코드베이스에 관해 유효한지 비판적으로 검토 후 우선순위를 알려줘
+3. 검토한 내역을 우선순위에 따라 순차적으로 반영해줘
+```
+
+**CI/CD 통합 시나리오**
+```
+# PR 생성 전 코드 품질 검증
+selvage mcp로 PR 생성 전 코드 품질 검증을 위해 main 브랜치 대비 변경사항을 리뷰해줘
+
+# 배포 전 최종 체크
+selvage mcp로 배포 전 최종 체크를 위해 스테이징된 변경사항을 종합적으로 리뷰해줘
+```
+
+### ⌨️ CLI 사용법
+
+터미널에서 직접 사용하는 방법입니다. MCP 모드 사용을 권장하지만, 스크립트나 CI/CD에서는 CLI가 유용합니다.
+
+#### Selvage 설정하기
 
 ```bash
 # 모든 설정 보기
@@ -123,13 +224,13 @@ selvage config language <언어명>
 
 ```
 
-### 코드 리뷰하기
+#### 코드 리뷰하기
 
 ```bash
 selvage review [OPTIONS]
 ```
 
-#### 주요 옵션
+##### 주요 옵션
 
 - `--repo-path <경로>`: Git 저장소 경로 (기본값: 현재 디렉토리)
 - `--staged`: 스테이징된 변경사항만 리뷰
@@ -140,7 +241,7 @@ selvage review [OPTIONS]
 - `--no-print`: 터미널에 리뷰 결과를 출력하지 않음 (기본적으로 터미널 출력 활성화)
 - `--skip-cache`: 캐시를 사용하지 않고 새로운 리뷰 수행
 
-#### 사용 예시
+##### 사용 예시
 
 ```bash
 # 현재 워킹 디렉토리 변경사항 리뷰
@@ -162,7 +263,52 @@ selvage review --model gemini-2.5-flash
 selvage review --target-branch main --open-ui
 ```
 
-### 결과 확인하기
+#### Git 워크플로우 활용
+
+##### 팀 협업 시나리오
+
+```bash
+# Pull Request 생성 전 코드 품질 검증
+selvage review --target-branch main --model claude-sonnet-4-thinking
+
+# 코드 리뷰어를 위한 변경사항 사전 분석
+selvage review --target-branch develop --model claude-sonnet-4-thinking
+
+# 특정 커밋 이후 모든 변경사항 종합 리뷰
+selvage review --target-commit a1b2c3d --model claude-sonnet-4-thinking
+```
+
+##### 개발 단계별 품질 관리
+
+```bash
+# 개발 중 빠른 피드백 (WIP 커밋 전)
+selvage review --model gemini-2.5-flash
+
+# 스테이징된 변경사항 최종 검증 (커밋 전)
+selvage review --staged --model claude-sonnet-4-thinking
+
+# 핫픽스 배포 전 긴급 검토
+selvage review --target-branch main --model claude-sonnet-4-thinking
+```
+
+##### 대용량 코드 리뷰
+
+```bash
+# 대용량 코드베이스도 자동으로 처리
+selvage review --model claude-sonnet-4  # 사용 방법은 동일, 자동 감지 후 멀티턴 처리 적용
+```
+
+Selvage는 LLM model의 컨텍스트 제한을 초과하는 대용량 코드 변경사항도 처리합니다.
+Long Context Mode는 자동으로 실행되니 기다리기만 하면 됩니다.
+
+##### 비용 최적화
+
+```bash
+# 작은 변경사항에는 경제적인 모델 사용
+selvage review --model gemini-2.5-flash
+```
+
+#### 결과 확인하기
 
 리뷰 결과는 **터미널에 바로 출력**되며, 동시에 파일로도 자동 저장됩니다.
 
@@ -181,6 +327,8 @@ selvage view --port 8502
 - 📋 모든 리뷰 결과 목록 표시
 - 🎨 마크다운 형식 표시
 - 🗂️ JSON 구조화된 결과 보기
+
+---
 
 ## 🌐 Smart Context 추출 및 지원 AI 모델
 
@@ -255,106 +403,6 @@ Selvage는 파일 크기와 변경 범위를 분석하여 **가장 효율적인 
 <p align="center">
   <img src="assets/demo-ui.png" width="100%" alt="Selvage UI Demo"/>
 </p>
-
-## 🛠️ 고급 사용법
-
-### 다양한 Git 워크플로우와 통합
-
-#### 팀 협업 워크플로우
-
-```bash
-# Pull Request 생성 전 코드 품질 검증
-selvage review --target-branch main --model claude-sonnet-4-thinking
-
-# 코드 리뷰어를 위한 변경사항 사전 분석
-selvage review --target-branch develop --model claude-sonnet-4-thinking
-
-# 특정 커밋 이후 모든 변경사항 종합 리뷰
-selvage review --target-commit a1b2c3d --model claude-sonnet-4-thinking
-```
-
-#### 개발 단계별 품질 관리
-
-```bash
-# 개발 중 빠른 피드백 (WIP 커밋 전)
-selvage review --model gemini-2.5-flash
-
-# 스테이징된 변경사항 최종 검증 (커밋 전)
-selvage review --staged --model claude-sonnet-4-thinking
-
-# 핫픽스 배포 전 긴급 검토
-selvage review --target-branch main --model claude-sonnet-4-thinking
-```
-
-### 대용량 코드 리뷰
-
-```bash
-# 대용량 코드베이스도 자동으로 처리
-selvage review --model claude-sonnet-4  # 사용 방법은 동일, 자동 감지 후 멀티턴 처리 적용
-```
-
-Selvage는 LLM model의 컨텍스트 제한을 초과하는 대용량 코드 변경사항도 처리합니다.  
-Long Context Mode는 자동으로 실행되니 기다리기만 하면 됩니다.
-
-### 비용 최적화
-
-```bash
-# 작은 변경사항에는 경제적인 모델 사용
-selvage review --model gemini-2.5-flash
-```
-
-### 문제 해결
-
-#### 설치 관련 오류
-
-**`externally-managed-environment` 에러 (macOS/Linux)**
-
-```bash
-# 해결 방법 1: uv 사용 (권장)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-uv tool install selvage
-
-# 해결 방법 2: pipx 사용
-brew install pipx  # macOS
-pipx install selvage
-
-# 해결 방법 3: 가상환경 사용
-python3 -m venv ~/.selvage-env
-source ~/.selvage-env/bin/activate
-pip install selvage
-```
-
-#### API 키 오류
-
-```bash
-# 환경변수 확인
-echo $OPENROUTER_API_KEY
-
-# 영구 설정 (Linux/macOS)
-echo 'export OPENROUTER_API_KEY="your_key_here"' >> ~/.bashrc
-source ~/.bashrc
-```
-
-**모델 not found 오류**
-
-```bash
-# 사용 가능한 모델 목록 확인
-selvage models
-
-# 모델명 정확히 확인하여 사용
-selvage review --model claude-sonnet-4-thinking
-```
-
-**네트워크 연결 오류**
-
-```bash
-# 캐시 무시하고 재시도
-selvage review --skip-cache
-
-# 디버그 모드로 상세 정보 확인
-selvage config debug-mode on
-selvage review
-```
 
 ## 💡 고급 설정 (개발자/기여자용)
 
@@ -433,6 +481,59 @@ selvage config debug-mode on
 ```
 
 </details>
+
+## 🔧 문제 해결
+
+### 설치 관련 오류
+
+**`externally-managed-environment` 에러 (macOS/Linux)**
+
+```bash
+# 해결 방법 1: uv 사용 (권장)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install selvage
+
+# 해결 방법 2: pipx 사용
+brew install pipx  # macOS
+pipx install selvage
+
+# 해결 방법 3: 가상환경 사용
+python3 -m venv ~/.selvage-env
+source ~/.selvage-env/bin/activate
+pip install selvage
+```
+
+### API 키 오류
+
+```bash
+# 환경변수 확인
+echo $OPENROUTER_API_KEY
+
+# 영구 설정 (Linux/macOS)
+echo 'export OPENROUTER_API_KEY="your_key_here"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**모델 not found 오류**
+
+```bash
+# 사용 가능한 모델 목록 확인
+selvage models
+
+# 모델명 정확히 확인하여 사용
+selvage review --model claude-sonnet-4-thinking
+```
+
+**네트워크 연결 오류**
+
+```bash
+# 캐시 무시하고 재시도
+selvage review --skip-cache
+
+# 디버그 모드로 상세 정보 확인
+selvage config debug-mode on
+selvage review
+```
 
 ## 🤝 기여하기
 
