@@ -27,7 +27,9 @@ def test_invalid_api_key_handling_deprecated():
     이 테스트는 e2e_api_key_scenarios.py로 이관되었습니다.
     더 포괄적인 API 키 관련 테스트는 새로운 파일에서 확인하세요.
     """
-    pytest.skip("This test has been moved to e2e_api_key_scenarios.py for better organization")
+    pytest.skip(
+        "This test has been moved to e2e_api_key_scenarios.py for better organization"
+    )
 
 
 def test_not_config_default_model_handling(error_test_container) -> None:
@@ -63,7 +65,12 @@ def test_not_config_default_model_handling(error_test_container) -> None:
     # 적절한 처리가 되어야 함 (에러이거나 적절한 메시지)
     output_str = output.decode("utf-8", errors="ignore").lower()
     assert any(
-        keyword in output_str for keyword in ["리뷰 모델을 지정하지 않았습니다."]
+        keyword in output_str
+        for keyword in [
+            "리뷰 모델을 지정하지 않았습니다",
+            "review model not specified",
+            "please specify a review model",
+        ]
     ), f"Should handle empty repository appropriately. Actual output: {output_str}"
 
 
@@ -101,7 +108,11 @@ def test_empty_repository_handling(error_test_container) -> None:
     output_str = output.decode("utf-8", errors="ignore").lower()
     assert any(
         keyword in output_str
-        for keyword in ["변경 사항이 없거나 diff를 가져올 수 없습니다."]
+        for keyword in [
+            "변경 사항이 없거나 diff를 가져올 수 없습니다",
+            "no changes found",
+            "unable to retrieve diff",
+        ]
     ), f"Should handle empty repository appropriately. Actual output: {output_str}"
 
 
@@ -126,7 +137,13 @@ def test_non_git_directory_handling(error_test_container) -> None:
 
     assert any(
         keyword in output_str
-        for keyword in ["git diff 오류", "유효한 git 저장소", "변경 사항이 없거나"]
+        for keyword in [
+            "git diff 오류",
+            "유효한 git 저장소",
+            "변경 사항이 없거나",
+            "please specify a valid git repository",
+            "no changes found",
+        ]
     ), (
         f"Error message should mention git repository requirement. Actual output: {output_str}"
     )

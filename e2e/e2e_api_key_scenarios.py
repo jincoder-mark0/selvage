@@ -112,7 +112,7 @@ def test_no_api_key_configuration(clean_api_key_container) -> None:
     [
         ("gemini-2.5-flash", "gemini"),
         ("gpt-5", "openai"),
-        ("claude-sonnet-4", "anthropic"),
+        ("claude-sonnet-4.5", "anthropic"),
         ("qwen3-coder", "openrouter"),
     ],
 )
@@ -181,7 +181,7 @@ def test_invalid_api_key_per_provider(
     [
         ("gemini-2.5-pro", ["GEMINI_API_KEY", "OPENROUTER_API_KEY"]),
         ("gpt-5", ["OPENAI_API_KEY", "OPENROUTER_API_KEY"]),
-        ("claude-sonnet-4", ["ANTHROPIC_API_KEY", "OPENROUTER_API_KEY"]),
+        ("claude-sonnet-4.5", ["ANTHROPIC_API_KEY", "OPENROUTER_API_KEY"]),
         ("qwen3-coder", ["OPENROUTER_API_KEY"]),
     ],
 )
@@ -235,7 +235,7 @@ def test_missing_provider_specific_keys(
 
 
 @pytest.mark.parametrize(
-    "model", ["gemini-2.5-pro", "gpt-5", "claude-sonnet-4", "qwen3-coder"]
+    "model", ["gemini-2.5-pro", "gpt-5", "claude-sonnet-4.5", "qwen3-coder"]
 )
 def test_openrouter_fallback_success(openrouter_only_container, model: str) -> None:
     """OpenRouter API 키만 있을 때 다양한 모델들이 성공하는지 테스트."""

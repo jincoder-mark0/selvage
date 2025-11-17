@@ -74,8 +74,8 @@ class TestSelvageCLIBasic:
         exit_code, output = container.exec("selvage config list")
 
         assert exit_code == 0
-        output_str = output.decode("utf-8", errors="ignore")
-        assert "selvage 설정" in output_str
+        output_str = output.decode("utf-8", errors="ignore").lower()
+        assert "selvage configuration" in output_str
 
     def test_selvage_models(self, testpypi_container) -> None:
         """selvage models 명령어가 정상 작동하는지 테스트."""
@@ -120,8 +120,8 @@ class TestSelvageConfigManagement:
         # 언어 설정
         exit_code, output = container.exec("selvage config language English")
         assert exit_code == 0
-        output_str = output.decode("utf-8", errors="ignore")
-        assert "English로 설정되었습니다" in output_str
+        output_str = output.decode("utf-8", errors="ignore").lower()
+        assert "default language has been set to english" in output_str
 
         # 설정 확인
         exit_code, output = container.exec("selvage config list")
@@ -138,8 +138,8 @@ class TestSelvageConfigManagement:
         # 현재 언어 설정 확인
         exit_code, output = container.exec("selvage config language")
         assert exit_code == 0
-        output_str = output.decode("utf-8", errors="ignore")
-        assert "현재 기본 언어" in output_str
+        output_str = output.decode("utf-8", errors="ignore").lower()
+        assert "current default language" in output_str
 
 
 class TestSelvageFileSystem:
