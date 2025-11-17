@@ -15,7 +15,7 @@
 <!-- <p align="center"> <img src="[데모 GIF URL]" width="100%" alt="Selvage Demo"/> </p> -->
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/338766d9-535e-47cb-ad10-1f8ce069401d" width="100%" controls></video>
+  <a href="https://pub-96dcfc8e21ae4525bb6f566e02497d31.r2.dev/assets/489282979-338766d9-535e-47cb-ad10-1f8ce069401d.mp4" target="_blank"><strong>▶ 데모 영상 보기</strong></a>
 </p>
 
 **Selvage: 코드 리뷰도 엣지있게!**
@@ -48,7 +48,7 @@
 - **🤖 다양한 AI 모델 지원**: OpenAI GPT-5, Anthropic Claude Sonnet-4, Google Gemini 등 최신 LLM 모델 활용
 - **🔍 Git 워크플로우와 통합**: staged, unstaged, 특정 커밋/브랜치 간 변경사항 분석 지원
 - **🎯 최적화된 컨텍스트 분석**: Tree-sitter 기반 AST 분석을 통해 변경 라인이 속하는 가장 작은 코드 블록과 dependency statement를 자동 추출하여 상황에 따라 최적화된 컨텍스트 제공
-- **🔄 자동 멀티턴 처리**: 컨텍스트 제한 초과 시 프롬프트를 자동 분할하여 안정적인 대용량 코드 리뷰 지원
+- **🔄 자동 멀티턴 처리**: 컨텍스트 제한 초과 시 프롬프트를 자동 분할하여 안정적인 대용량 코드 리뷰 지원 (총 토큰이 약 200k(tiktoken 기준)을 넘으면 LLM 오류 여부와 관계없이 자동으로 Large Context Mode 실행)
 - **🤖 MCP 모드 지원**: Cursor, Claude Code 등에 MCP 모드로 등록하여 "현재 변경사항 리뷰해줘" 같은 자연어로 대화하며 코드 리뷰 요청
 - **📖 오픈소스**: Apache-2.0 라이선스로 자유롭게 사용 및 수정 가능
 
@@ -186,11 +186,13 @@ selvage mcp로 메인 브랜치와 현재 브랜치를 리뷰하되 사용 모�
 #### 고급 워크플로우
 
 **멀티 모델 비교 리뷰**
+
 ```
 selvage mcp로 스테이징된 작업 내용을 gpt-5-high, claude-sonnet-4-thinking으로 각각 리뷰하고 결과를 비교해줘
 ```
 
 **단계별 코드 개선 워크플로우**
+
 ```
 1. selvage mcp로 현재 변경사항을 claude-sonnet-4-thinking으로 리뷰해줘
 2. 리뷰 피드백이 현재 코드베이스에 관해 유효한지 비판적으로 검토 후 우선순위를 알려줘
@@ -198,6 +200,7 @@ selvage mcp로 스테이징된 작업 내용을 gpt-5-high, claude-sonnet-4-thin
 ```
 
 **CI/CD 통합 시나리오**
+
 ```
 # PR 생성 전 코드 품질 검증
 selvage mcp로 PR 생성 전 코드 품질 검증을 위해 main 브랜치 대비 변경사항을 리뷰해줘
@@ -299,7 +302,7 @@ selvage review --model claude-sonnet-4  # 사용 방법은 동일, 자동 감지
 ```
 
 Selvage는 LLM model의 컨텍스트 제한을 초과하는 대용량 코드 변경사항도 처리합니다.
-Long Context Mode는 자동으로 실행되니 기다리기만 하면 됩니다.
+토큰 사용량이 tiktoken 기준으로 약 200k에 도달하면 Large Context Mode가 자동으로 실행되므로 결과를 기다려주세요.
 
 ##### 비용 최적화
 
@@ -380,6 +383,7 @@ Selvage는 파일 크기와 변경 범위를 분석하여 **가장 효율적인 
 
 #### Anthropic 모델 (OpenRouter 또는 Anthropic API 키)
 
+- **claude-sonnet-4.5**: 최신 Sonnet 계열 모델로 향상된 추론 품질 제공 (200K 컨텍스트, Large Context 모드 선제 트리거)
 - **claude-sonnet-4**: 하이브리드 추론 모델로 고급 코딩 최적화 (200K 컨텍스트)
 - **claude-sonnet-4-thinking**: ⭐ **추천** - 확장 사고 프로세스 지원 (200K 컨텍스트)
 
